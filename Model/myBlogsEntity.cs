@@ -9,6 +9,7 @@ namespace CustomBlogsAPI.Model
         [Key]
         [Required]
         public int blogId { get; set; }
+
         //[Required]
         //public string blogName { get; set; } = string.Empty;
         [Required]
