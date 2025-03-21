@@ -2,6 +2,7 @@
 using CustomBlogsAPI.Model;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -13,16 +14,40 @@ namespace CustomBlogsAPI.Controllers
     {
         private readonly IRepository<myBlogsEntity> _myblogs;
 
-        public BlogController(IRepository<myBlogsEntity> myblogs)
+        public IRepository<myCategoryEntity> _myCat { get; }
+
+        public BlogController(IRepository<myBlogsEntity> myblogs, IRepository<myCategoryEntity> myCat)
         {
             _myblogs = myblogs;
+            _myCat = myCat;
         }
 
         // GET: api/<BlogController>
-        [HttpGet]
-        public async Task<ActionResult> GetBlogsList()
+        //[HttpGet]
+        //public async Task<ActionResult> GetBlogsList()
+        //{
+        //    var blogList = await _myblogs.GetAll();
+        //    return Ok(blogList);
+        //}
+
+        // GET: api/<BlogController>
+        [HttpGet(Name = "GetBlogswithCat")]
+        public async Task<ActionResult> GetBlogswithCat()
         {
-            var blogList = await _myblogs.GetAll();
+            var blogList =
+            (from b in await _myblogs.GetAll()
+             join c in await _myCat.GetAll()
+             on b.categoryId equals c.categoryId
+             select new
+             {
+                 blogId = b.blogId,
+                 blogTitle = b.blogTitle,
+                 blogDescription = b.blogDescription,
+                 blogContent = b.blogContent,
+                 image = b.image,
+                 categoryId = c.categoryId,
+                 category = c.categoryName
+             });
             return Ok(blogList);
         }
 
@@ -30,7 +55,22 @@ namespace CustomBlogsAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetBlogbyId([FromRoute] int id)
         {
-            var blog = await _myblogs.GetById(id);
+            //var blog = await _myblogs.GetById(id);
+            var blog =
+                (from b in await _myblogs.GetAll()
+                 join c in await _myCat.GetAll()
+                 on b.categoryId equals c.categoryId
+                 where b.blogId == id
+                 select new
+                 {
+                     blogId = b.blogId,
+                     blogTitle = b.blogTitle,
+                     blogDescription = b.blogDescription,
+                     blogContent = b.blogContent,
+                     image = b.image,
+                     categoryId = c.categoryId,
+                     category = c.categoryName
+                 });
             return Ok(blog);
         }
 
